@@ -21,3 +21,6 @@ APPLE MAC VERSION/
 # Private: saved setlists and the Google Drive link of the song database
 setlists/
 database_link.txt
+
+# Photoshop working files stay private
+*.psd
