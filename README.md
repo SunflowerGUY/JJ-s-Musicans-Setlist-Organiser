@@ -34,13 +34,15 @@
 
 ## Downloads
 
-Ready-to-use packages are in the [`packages`](packages) folder:
+Get the latest version from the **[Releases page](https://github.com/SunflowerGUY/JJ-s-Musicans-Setlist-Organiser/releases/latest)**, or download directly:
 
 | System | Download | Then |
 |---|---|---|
-| Windows | [`JJs Setlist.exe`](packages/JJs%20Setlist.exe) | Put it in a folder of its own and double-click it (see *Windows* below) |
-| macOS | [`JJs Setlist - Mac.zip`](packages/JJs%20Setlist%20-%20Mac.zip) | Unzip and follow `READ ME FIRST - Mac.txt` |
-| Linux | [`JJs Setlist - Linux.zip`](packages/JJs%20Setlist%20-%20Linux.zip) | Unzip and run `./run.sh` (see *Linux* below) |
+| Windows | [`JJs-Setlist-Windows.exe`](https://github.com/SunflowerGUY/JJ-s-Musicans-Setlist-Organiser/releases/latest/download/JJs-Setlist-Windows.exe) | Put it in a folder of its own and double-click it (see *Windows* below) |
+| macOS | [`JJs-Setlist-Mac.zip`](https://github.com/SunflowerGUY/JJ-s-Musicans-Setlist-Organiser/releases/latest/download/JJs-Setlist-Mac.zip) | Unzip and follow `READ ME FIRST - Mac.txt` |
+| Linux | [`JJs-Setlist-Linux.zip`](https://github.com/SunflowerGUY/JJ-s-Musicans-Setlist-Organiser/releases/latest/download/JJs-Setlist-Linux.zip) | Unzip and run `./run.sh` (see *Linux* below) |
+
+The same packages are also kept in the [`packages`](packages) folder.
 
 ---
 
