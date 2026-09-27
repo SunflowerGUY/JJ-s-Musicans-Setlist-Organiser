@@ -1,0 +1,11 @@
+# Python add-ons installed by run.sh / build.sh
+.venv/
+.venv-build/
+__pycache__/
+
+# Build output
+/JJs Setlist
+*.spec
+
+# The zip made for sending (by make_linux_package.py on Windows)
+*.zip

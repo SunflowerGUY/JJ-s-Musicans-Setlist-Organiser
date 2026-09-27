@@ -1,0 +1,119 @@
+JJ'S MUSICIANS SETLIST ORGANISER  -  Mac version
+================================================
+
+There are two ways to use the app on a Mac:
+
+  A. RUN IT DIRECTLY   - double-click "Run JJs Setlist.command"
+                         No building. Best while updates arrive often.
+
+  B. BUILD THE APP     - double-click "Build Mac App.command" (once per
+                         update) to make a normal "JJs Setlist.app".
+
+Both use the same saved setlists and settings, kept in:
+    Documents/JJs Setlist
+so you can switch between them, and updates never touch your setlists.
+
+
+1. INSTALL PYTHON  (one time only - needed for both A and B)
+------------------------------------------------------------
+   Download and install Python 3 (3.12 or newer) from:
+       https://www.python.org/downloads/macos/
+
+   Use the python.org installer - it includes everything the app needs.
+   (The Python from Homebrew does not include the Tk window toolkit.)
+
+
+2. UNZIP
+--------
+   Double-click "JJs Setlist - Mac.zip". Move the "JJs Setlist"
+   folder somewhere handy, e.g. into Documents.
+
+
+3A. RUN IT DIRECTLY  (no build)
+-------------------------------
+   Double-click   "Run JJs Setlist.command"
+
+   A Terminal window opens, then the app. Keep the Terminal window open
+   while you use the app (you can minimise it) - closing it closes the app.
+   If anything goes wrong, the error message appears in that window.
+   The very first run installs one small add-on (openpyxl), so it needs
+   an internet connection.
+
+   Note: double-clicking "jjs_setlist.py" itself does NOT run it - a Mac opens
+   .py files for editing. Always use "Run JJs Setlist.command".
+
+
+3B. BUILD THE APP  (optional)
+-----------------------------
+   Double-click   "Build Mac App.command"
+
+   A Terminal window opens and shows the progress. The first build also
+   downloads the build tools, so it takes a few minutes.
+   When it says "Done!", "JJs Setlist.app" is in this folder.
+   Drag it into your Applications folder and onto the Dock if you like.
+
+
+IF MACOS BLOCKS A .command FILE
+-------------------------------
+   If macOS says the file "cannot be opened because it is from an
+   unidentified developer" (or "Apple could not verify..."):
+     - Right-click (or Control-click) the file > Open > Open
+     - or open System Settings > Privacy & Security, scroll down and
+       click "Open Anyway".
+   You only need to do this once per file.
+
+   If double-clicking does nothing: open Terminal, type   bash   and a
+   space, drag the .command file into the Terminal window, press Return.
+
+
+4. FIRST RUN
+------------
+   The first time, macOS may ask to let the app access your Documents
+   folder - click OK.
+
+   Everything is set up automatically: the app creates
+   Documents > JJs Setlist  and copies into it
+     - the song spreadsheet that comes with it (the .xlsx file),
+       which it opens straight away, and
+     - any saved setlists in the "setlists" folder - pick one from the
+       "Saved setlists" list at the top.
+
+   To use a different spreadsheet later: File > Open Song Database...
+
+
+MAC DIFFERENCES
+---------------
+   - Shortcuts use Cmd instead of Ctrl (Cmd+S save, Cmd+P songsheet, ...)
+     and Option instead of Alt (Option+Up / Option+Down move a song).
+   - Right-click, or Control-click, a song for its menu.
+   - The delete key removes the selected song from a set.
+   - The menus are in the menu bar at the top of the screen.
+   - Help > Keyboard Shortcuts lists everything, with Mac key names.
+   - Printing: choose the printer in File > Printer. Pages print in
+     landscape, two sets per page.
+   - File > Save Setlist as PDF... makes a PDF to email or print later.
+
+
+UPDATES
+-------
+   NOTE: this app used to be called "JJ's Setlist", and before that
+   "Musician's Setlist". The files and folders keep the name
+   "JJs Setlist", so updating from "JJ's Setlist" needs nothing extra.
+   If you used "Musician's Setlist", your saved setlists and settings
+   move across to Documents/JJs Setlist automatically the first time
+   you run the app - nothing to do. You can delete the old
+   "Musicians Setlist" folder you unzipped before.
+
+   Unzip the new version and replace this folder with it.
+     - Using "Run JJs Setlist.command"?  Nothing else to do - just run it.
+     - Using the app?  Double-click "Build Mac App.command" again.
+   Your saved setlists and settings (Documents/JJs Setlist) are
+   not affected either way.
+
+   New setlists that come with an update are added automatically the
+   next time the app starts. Setlists you already have are never
+   overwritten, and ones you've deleted don't come back.
+
+   The spreadsheet is only copied the very first time. If an update
+   includes a newer spreadsheet you want to use, copy it into
+   Documents > JJs Setlist (replacing the old one) and press F5.

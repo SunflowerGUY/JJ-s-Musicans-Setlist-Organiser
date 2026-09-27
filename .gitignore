@@ -1,0 +1,23 @@
+# Personal settings and downloads made by the app when run from this folder
+config.json
+drive_copy.xlsx
+~$*.xlsx
+
+# Python
+__pycache__/
+.venv/
+.venv-build/
+
+# Build output (the release copies live in packages/)
+/JJs Setlist.exe
+/JJs Setlist.app/
+*.spec
+build/
+dist/
+
+# Made by Make Mac Package.bat - the zip is kept in packages/
+APPLE MAC VERSION/
+
+# Private: saved setlists and the Google Drive link of the song database
+setlists/
+database_link.txt

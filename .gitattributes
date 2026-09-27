@@ -1,0 +1,21 @@
+# Keep line endings right for each system, whatever computer the repo is
+# cloned on: Mac/Linux scripts won't run with Windows (CRLF) endings, and
+# Windows batch files need them.
+* text=auto
+*.py        text eol=lf
+*.sh        text eol=lf
+*.command   text eol=lf
+*.md        text eol=lf
+*.txt       text eol=lf
+*.json      text eol=lf
+.gitignore  text eol=lf
+*.bat       text eol=crlf
+
+*.exe   binary
+*.zip   binary
+*.xlsx  binary
+*.ico   binary
+*.png   binary
+*.jpg   binary
+*.psd   binary
+*.pdf   binary
