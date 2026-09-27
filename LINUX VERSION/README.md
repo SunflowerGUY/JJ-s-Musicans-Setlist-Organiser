@@ -12,6 +12,8 @@
 
 ---
 
+![JJ's Musicians Setlist Organiser main window](https://raw.githubusercontent.com/SunflowerGUY/JJ-s-Musicans-Setlist-Organiser/main/docs/screenshot.jpg)
+
 ## Features
 
 - **4 sets of up to 16 songs**, side by side, with drag and drop between the song library and the sets.

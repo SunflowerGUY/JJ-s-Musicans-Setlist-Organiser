@@ -12,6 +12,8 @@
 
 ---
 
+![JJ's Musicians Setlist Organiser main window](docs/screenshot.jpg)
+
 ## Features
 
 - **4 sets of up to 16 songs**, side by side, with the current set clearly highlighted.
@@ -166,6 +168,7 @@ The version shown in the title bar and *Help ▸ About* gets a letter for the sy
 | `colour_picker.py` | Stand-alone colour wheel that the in-app colour picker was adapted from |
 | `Sample SETLIST with links.xlsx` | Example song database — three songs link to their songsheets in `songsheets/` |
 | `songsheets/` | Example songsheet PDFs (traditional songs), opened from the sample spreadsheet |
+| `docs/` | The screenshot for this README |
 | `ARTWORK/` | Logo artwork |
 | `setlists/` | Saved setlists (JSON) |
 | `packages/` | The ready-built Windows app and the Mac and Linux zips |
