@@ -31,8 +31,8 @@ from logo_data import LOGO_PNG
 IS_WIN = sys.platform == "win32"
 IS_MAC = sys.platform == "darwin"
 
-# Version with the system's letter: 1.0.W (Windows), 1.0.M (Mac), 1.0.L (Linux).
-APP_VERSION = "1.0." + ("W" if IS_WIN else "M" if IS_MAC else "L")
+# Version with the system's letter: 1.1.W (Windows), 1.1.M (Mac), 1.1.L (Linux).
+APP_VERSION = "1.1." + ("W" if IS_WIN else "M" if IS_MAC else "L")
 APP_NAME = "JJ's Musicians Setlist Organiser"  # shown in windows, help and printouts
 APP_FILE_NAME = "JJs Setlist"           # for files and folders (no apostrophe)
 APP_TITLE = f"{APP_NAME} - v{APP_VERSION}"
@@ -302,7 +302,9 @@ def open_link(link, print_it=False, printer=None):
 
 # PowerShell + .NET printing: landscape, monospaced so the columns line up,
 # a set is moved to a new page rather than split (when it fits on one page),
-# and a footer with the title and page numbers. Settings arrive in
+# a header on every page after the first (the first line of the text, marked
+# "continued", so a loose page 2 still says which gig it belongs to), and a
+# footer with the title and page numbers. Settings arrive in
 # environment variables so no quoting of file names is needed.
 PRINT_SCRIPT = r'''
 $ErrorActionPreference = "Stop"
@@ -324,6 +326,11 @@ $margin = 35
 $doc.DefaultPageSettings.Margins = New-Object System.Drawing.Printing.Margins($margin, $margin, $margin, $margin)
 $font = New-Object System.Drawing.Font("Consolas", 10)
 $small = New-Object System.Drawing.Font("Consolas", 8)
+$bold = New-Object System.Drawing.Font("Consolas", 10, [System.Drawing.FontStyle]::Bold)
+# Pages after the first start with a header: heading line, rule, blank line.
+$headerLines = 3
+$heading = ""
+if ($lines.Count -gt 0) { $heading = $lines[0].Trim() + "   (continued)" }
 
 # Length of the block starting at each "SET n" line (up to the next one).
 $block = @{}
@@ -340,13 +347,14 @@ function Layout($g) {
     $lh = $font.GetHeight(100)
     $m = $doc.DefaultPageSettings.Bounds
     $top = $margin; $bottom = $m.Height - $margin - 16   # 16 = room for the footer
-    $starts = @(0); $y = $top
+    $bodyTop = $top + $headerLines * $lh                 # later pages: below the header
+    $starts = @(0); $y = $top; $pageTop = $top
     for ($i = 0; $i -lt $lines.Count; $i++) {
-        if ($y -gt $top) {
+        if ($y -gt $pageTop) {
             # A set that fits on a page starts a new page rather than split.
-            $setFits = $block.ContainsKey($i) -and ($block[$i] * $lh) -le ($bottom - $top)
+            $setFits = $block.ContainsKey($i) -and ($block[$i] * $lh) -le ($bottom - $bodyTop)
             $setSpills = $setFits -and ($y + $block[$i] * $lh) -gt $bottom
-            if ($setSpills -or ($y + $lh) -gt $bottom) { $starts += $i; $y = $top }
+            if ($setSpills -or ($y + $lh) -gt $bottom) { $starts += $i; $y = $bodyTop; $pageTop = $bodyTop }
         }
         $y += $lh
     }
@@ -364,6 +372,18 @@ $doc.add_PrintPage({
     $last = $lines.Count
     if ($script:page + 1 -lt $script:starts.Count) { $last = $script:starts[$script:page + 1] }
     $y = $e.MarginBounds.Top
+    if ($script:page -gt 0) {
+        # Header, so this page can't be mixed up with another gig's.
+        $g.DrawString($heading, $bold, [System.Drawing.Brushes]::Black, $e.MarginBounds.Left, $y)
+        $pageNo = "Page $($script:page + 1) of $($script:starts.Count)"
+        $size = $g.MeasureString($pageNo, $bold)
+        $g.DrawString($pageNo, $bold, [System.Drawing.Brushes]::Black,
+                      $e.MarginBounds.Right - $size.Width, $y)
+        $ruleY = $y + $lh * 1.3
+        $g.DrawLine([System.Drawing.Pens]::Black, $e.MarginBounds.Left, $ruleY,
+                    $e.MarginBounds.Right, $ruleY)
+        $y += $headerLines * $lh
+    }
     for ($i = $first; $i -lt $last; $i++) {
         $g.DrawString($lines[$i], $font, [System.Drawing.Brushes]::Black, $e.MarginBounds.Left, $y)
         $y += $lh
@@ -453,11 +473,14 @@ PDF_MARGIN = 25                          # 0.35 inch
 PDF_FONT_SIZE = 10
 PDF_LEADING = 11.7                       # line spacing
 PDF_FOOTER = 14                          # room for the footer line
+HEADER_LINES = 3                         # later pages: heading, rule, blank line
 
 
-def paginate(lines, per_page):
+def paginate(lines, per_page, later_per_page=None):
     """Split lines into pages; a "SET n" block that fits on one page is moved
-    to a new page rather than split (same rule as Windows printing)."""
+    to a new page rather than split (same rule as Windows printing).
+    later_per_page: room on pages after the first (they carry a header)."""
+    later = later_per_page or per_page
     block = {}
     for i, line in enumerate(lines):
         if re.match(r"^SET \d", line):
@@ -468,9 +491,10 @@ def paginate(lines, per_page):
     pages, current = [], []
     for i, line in enumerate(lines):
         if current:
-            set_fits = i in block and block[i] <= per_page
-            spills = set_fits and len(current) + block[i] > per_page
-            if spills or len(current) + 1 > per_page:
+            room = later if pages else per_page
+            set_fits = i in block and block[i] <= later
+            spills = set_fits and len(current) + block[i] > room
+            if spills or len(current) + 1 > room:
                 pages.append(current)
                 current = []
         current.append(line)
@@ -484,10 +508,13 @@ def _pdf_string(text):
 
 
 def make_pdf(text, title, path):
-    """Write text as an A4-landscape PDF with a title/page-number footer."""
+    """Write text as an A4-landscape PDF with a title/page-number footer, and
+    a header on every page after the first (so a loose page 2 still says
+    which gig it belongs to)."""
     lines = text.splitlines()
     per_page = int((PDF_PAGE_H - 2 * PDF_MARGIN - PDF_FOOTER) // PDF_LEADING)
-    pages = paginate(lines, per_page)
+    pages = paginate(lines, per_page, per_page - HEADER_LINES)
+    heading = (lines[0].strip() + "   (continued)") if lines else ""
     objects = []
 
     def add(body):
@@ -496,11 +523,26 @@ def make_pdf(text, title, path):
 
     font = add(b"<< /Type /Font /Subtype /Type1 /BaseFont /Courier "
                b"/Encoding /WinAnsiEncoding >>")
+    bold = add(b"<< /Type /Font /Subtype /Type1 /BaseFont /Courier-Bold "
+               b"/Encoding /WinAnsiEncoding >>")
     pages_id = add(b"")                          # filled in below
     kids = []
     for n, page in enumerate(pages, 1):
-        ops = [b"BT", b"/F1 %d Tf" % PDF_FONT_SIZE]
+        ops = []
         y = PDF_PAGE_H - PDF_MARGIN - PDF_FONT_SIZE
+        if n > 1:
+            # Header, so this page can't be mixed up with another gig's.
+            page_no = f"Page {n} of {len(pages)}"
+            x = PDF_PAGE_W - PDF_MARGIN - len(page_no) * PDF_FONT_SIZE * 0.6
+            rule = y - PDF_LEADING * 0.45
+            ops += [b"BT /F2 %d Tf" % PDF_FONT_SIZE,
+                    b"1 0 0 1 %.2f %.2f Tm (%s) Tj" % (PDF_MARGIN, y, _pdf_string(heading)),
+                    b"1 0 0 1 %.2f %.2f Tm (%s) Tj" % (x, y, _pdf_string(page_no)),
+                    b"ET",
+                    b"0.8 w %.2f %.2f m %.2f %.2f l S"
+                    % (PDF_MARGIN, rule, PDF_PAGE_W - PDF_MARGIN, rule)]
+            y -= HEADER_LINES * PDF_LEADING
+        ops += [b"BT", b"/F1 %d Tf" % PDF_FONT_SIZE]
         for line in page:
             ops.append(b"1 0 0 1 %.2f %.2f Tm (%s) Tj" % (PDF_MARGIN, y, _pdf_string(line)))
             y -= PDF_LEADING
@@ -512,8 +554,8 @@ def make_pdf(text, title, path):
         content = b"\n".join(ops)
         stream = add(b"<< /Length %d >>\nstream\n%s\nendstream" % (len(content), content))
         kids.append(add(b"<< /Type /Page /Parent %d 0 R /MediaBox [0 0 %d %d] "
-                        b"/Resources << /Font << /F1 %d 0 R >> >> /Contents %d 0 R >>"
-                        % (pages_id, PDF_PAGE_W, PDF_PAGE_H, font, stream)))
+                        b"/Resources << /Font << /F1 %d 0 R /F2 %d 0 R >> >> /Contents %d 0 R >>"
+                        % (pages_id, PDF_PAGE_W, PDF_PAGE_H, font, bold, stream)))
     objects[pages_id - 1] = (b"<< /Type /Pages /Kids [%s] /Count %d >>"
                              % (b" ".join(b"%d 0 R" % k for k in kids), len(kids)))
     catalog = add(b"<< /Type /Catalog /Pages %d 0 R >>" % pages_id)
