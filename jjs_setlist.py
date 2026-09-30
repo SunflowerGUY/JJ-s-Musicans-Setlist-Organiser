@@ -31,8 +31,8 @@ from logo_data import LOGO_PNG
 IS_WIN = sys.platform == "win32"
 IS_MAC = sys.platform == "darwin"
 
-# Version with the system's letter: 1.1.W (Windows), 1.1.M (Mac), 1.1.L (Linux).
-APP_VERSION = "1.1." + ("W" if IS_WIN else "M" if IS_MAC else "L")
+# Version with the system's letter: 1.2.W (Windows), 1.2.M (Mac), 1.2.L (Linux).
+APP_VERSION = "1.2." + ("W" if IS_WIN else "M" if IS_MAC else "L")
 APP_NAME = "JJ's Musicians Setlist Organiser"  # shown in windows, help and printouts
 APP_FILE_NAME = "JJs Setlist"           # for files and folders (no apostrophe)
 APP_TITLE = f"{APP_NAME} - v{APP_VERSION}"
@@ -2542,11 +2542,21 @@ class SetlistApp(tk.Tk):
                          if not q or q in " ".join(v for k, v in s.items()
                                                    if k != "link").casefold()]
         used = self._used_ids()
-        self.lib_box.delete(0, "end")
-        for i, song in enumerate(self.filtered):
-            self.lib_box.insert("end", song_label(song))
-            if song_id(song) in used:
-                self.lib_box.itemconfig(i, foreground=self.lib_colours["used"])
+        shown = [(song_id(s), song_label(s)) for s in self.filtered]
+        if shown == getattr(self, "_lib_shown", None):
+            # Same songs as already listed (e.g. a song was just added to a
+            # set): only re-colour them, so the list keeps its scroll position
+            # and selection instead of jumping back to the top.
+            for i, (sid, _) in enumerate(shown):
+                self.lib_box.itemconfig(i, foreground=self.lib_colours[
+                    "used" if sid in used else "fg"])
+        else:
+            self.lib_box.delete(0, "end")
+            for i, (sid, label) in enumerate(shown):
+                self.lib_box.insert("end", label)
+                if sid in used:
+                    self.lib_box.itemconfig(i, foreground=self.lib_colours["used"])
+            self._lib_shown = shown
         self.lib_count.config(text=f"{len(self.filtered)} of {len(self.library)} songs")
         self._update_get_started()
 
