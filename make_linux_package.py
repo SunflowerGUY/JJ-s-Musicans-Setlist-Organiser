@@ -20,6 +20,7 @@ ZIP = OUT / "JJs Setlist - Linux.zip"
 
 # Kept in LINUX VERSION itself.
 LINUX_FILES = ["README.md", "run.sh", "install.sh", "build.sh",
+               "build_appimage.sh", "build_appimage_2204.sh",
                "requirements.txt", ".gitignore"]
 # Copied in from the main project:  source -> destination in LINUX VERSION.
 COPIED = {
@@ -29,7 +30,8 @@ COPIED = {
     "ARTWORK/JJ SETLIST Icon Source.png": "assets/jjs-setlist.png",
 }
 # Files that must be executable on Linux.
-EXECUTABLE = {"run.sh", "install.sh", "build.sh"}
+EXECUTABLE = {"run.sh", "install.sh", "build.sh",
+              "build_appimage.sh", "build_appimage_2204.sh"}
 TEXT = (".py", ".sh", ".txt", ".md", ".gitignore")
 
 

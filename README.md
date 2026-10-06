@@ -145,7 +145,7 @@ The full list is in **Help ▸ Keyboard Shortcuts**.
 
 The Windows and Mac scripts install what they need (PyInstaller, openpyxl, Pillow) on first run, close the app if it's running, and rebuild the icon, About-window logo and help-tip bulb from `ARTWORK/JJ SETLIST Icon Source.png`, `ARTWORK/JJ SETLIST Logo Source.png` and `ARTWORK/TIP LIght Bulb #1.png` via `make_icons.py`. An app must be built on the system it's for — a Windows PC can't build the Mac or Linux app.
 
-The version shown in the title bar and *Help ▸ About* gets a letter for the system it's running on — `1.4.W` (Windows), `1.4.M` (Mac), `1.4.L` (Linux) — so change only the number in `APP_VERSION` for a new release.
+The version shown in the title bar and *Help ▸ About* gets a letter for the system it's running on — `1.5.W` (Windows), `1.5.M` (Mac), `1.5.L` (Linux) — so change only the number in `APP_VERSION` for a new release.
 
 **Sending an update to a Mac user:** double-click `Make Mac Package.bat`. It refreshes the `APPLE MAC VERSION` folder and creates `JJs Setlist - Mac.zip` (with Mac line endings and executable permissions intact), including the song spreadsheet and saved setlists.
 

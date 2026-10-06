@@ -31,8 +31,8 @@ from logo_data import LOGO_PNG, TIP_PNG
 IS_WIN = sys.platform == "win32"
 IS_MAC = sys.platform == "darwin"
 
-# Version with the system's letter: 1.4.W (Windows), 1.4.M (Mac), 1.4.L (Linux).
-APP_VERSION = "1.4." + ("W" if IS_WIN else "M" if IS_MAC else "L")
+# Version with the system's letter: 1.5.W (Windows), 1.5.M (Mac), 1.5.L (Linux).
+APP_VERSION = "1.5." + ("W" if IS_WIN else "M" if IS_MAC else "L")
 APP_NAME = "JJ's Musicians Setlist Organiser"  # shown in windows, help and printouts
 APP_FILE_NAME = "JJs Setlist"           # for files and folders (no apostrophe)
 APP_TITLE = f"{APP_NAME} - v{APP_VERSION}"
@@ -1075,7 +1075,9 @@ class ColourPicker(ttk.Frame):
 
 class SetlistApp(tk.Tk):
     def __init__(self):
-        super().__init__()
+        # Tk makes the window class "Jjs_setlist", which matches
+        # StartupWMClass in the Linux menu entries (taskbar icon).
+        super().__init__(className="jjs_setlist")
         self.title(APP_TITLE)
         self._set_window_icon()
         # Roomier default window (bigger text), but never larger than the screen.

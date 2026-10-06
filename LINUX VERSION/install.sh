@@ -25,7 +25,8 @@ echo "[1/2] Checking what the app needs..."
 bash "$HERE/run.sh" --setup || exit 1
 
 echo "[2/2] Adding it to the applications menu..."
-chmod +x "$HERE/run.sh" "$HERE/install.sh" "$HERE/build.sh" 2>/dev/null
+chmod +x "$HERE/run.sh" "$HERE/install.sh" "$HERE/build.sh" \
+    "$HERE/build_appimage.sh" "$HERE/build_appimage_2204.sh" 2>/dev/null
 mkdir -p "$APPS"
 # In a .desktop file, quotes and $ in paths must be escaped.
 esc() { printf '%s' "$1" | sed -e 's/[\\"`$]/\\&/g'; }

@@ -97,6 +97,29 @@ To make a single program file that runs without Python (for example, to copy to 
 
 This produces `JJs Setlist` in this folder; run it with `./"JJs Setlist"`. It must be built on Linux, and runs on the same distribution or newer ones.
 
+## AppImage (optional)
+
+An AppImage is one file that runs on most Linux systems with nothing to install — not even Python or Tk. To build it:
+
+```bash
+./build_appimage.sh
+```
+
+This produces `JJs_Setlist-x86_64.AppImage` (about 14 MB). The first build downloads `appimagetool` from [github.com/AppImage/appimagetool](https://github.com/AppImage/appimagetool). Your setlists, spreadsheet and settings are never put inside it.
+
+To use it, copy it anywhere, mark it executable (right-click ▸ Properties ▸ Permissions ▸ *Allow executing file as program*, or `chmod +x JJs_Setlist-x86_64.AppImage`), then double-click it. Like the other versions, it keeps your settings and setlists in `~/Documents/JJs Setlist`.
+
+To add it to your applications menu, run it once from a terminal with `--install`:
+
+```bash
+./JJs_Setlist-x86_64.AppImage --install
+```
+
+This copies it to `~/Applications` (so you can delete the downloaded copy) and adds the menu entry and icon. Nothing needs root, and no password is asked for. To update, run `--install` from the new version. To remove it: `~/Applications/JJs_Setlist-x86_64.AppImage --uninstall`. This uses the same menu entry as `./install.sh`, so use one or the other.
+
+- It runs on the distribution it was built on and newer ones, never older ones. To share it widely, build it on Ubuntu 22.04. `./build_appimage_2204.sh` does this for you inside a container (needs Podman: `sudo apt install podman`), so the result runs on Ubuntu 22.04, Mint 21, Debian 12 and newer.
+- If it says *Cannot mount AppImage, please check your FUSE setup*, run it with `./JJs_Setlist-x86_64.AppImage --appimage-extract-and-run` instead (a little slower to start). `libfuse2` is **not** needed.
+
 ## Files
 
 | File | Purpose |
@@ -106,6 +129,8 @@ This produces `JJs Setlist` in this folder; run it with `./"JJs Setlist"`. It mu
 | `run.sh` | Starts the app, setting up what it needs the first time |
 | `install.sh` | Adds the app to the applications menu (`--uninstall` removes it) |
 | `build.sh` | Optional: builds a standalone program |
+| `build_appimage.sh` | Optional: builds a single-file AppImage |
+| `build_appimage_2204.sh` | Optional: builds the AppImage on Ubuntu 22.04 (in a container), for sharing |
 | `requirements.txt` | The Python add-ons the app uses |
 | `setlists/` | Setlists that come with the package (if any), imported on first run |
 | The `.xlsx` file | The starting song database |

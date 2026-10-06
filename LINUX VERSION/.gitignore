@@ -5,6 +5,7 @@ __pycache__/
 
 # Build output
 /JJs Setlist
+*.AppImage
 *.spec
 
 # The zip made for sending (by make_linux_package.py on Windows)
