@@ -16,15 +16,15 @@
 
 ## Features
 
-- **4 sets of up to 16 songs**, side by side, with the current set clearly highlighted.
+- **4 sets of up to 16 songs**, side by side, with the current set clearly highlighted. Each set shows its approximate running time (about 3½ minutes a song).
 - **Drag and drop** songs from the library into any set, reorder within a set, move between sets, or drag back to the library to remove. Buttons and keyboard shortcuts do the same.
 - **Backup song database on Google Drive** — *File ▸ Song Database Settings* takes the Drive share link of the same spreadsheet. The app falls back to it (with a clear **⚠ BACKUP** notice) if the main file can't be loaded, or can use it first so every computer always has the latest version. The last download is kept for offline use.
 - **Song library from Excel** (`.xlsx`) or **CSV**, with instant search across song name, artist, style and vocalist. Songs already in the setlist are greyed out.
 - **Songsheet links** — each song can link to its PDF songsheet (e.g. on Google Drive). Songs with a link show 📄; double-click a song in a set (or press Ctrl+P) to open it.
-- **Save and load named setlists** (e.g. *"Venue Name - March 2027"*), pick them from a dropdown.
+- **Save and load named setlists** (e.g. *"Venue Name - March 2027"*), pick them from a dropdown. If a setlist was made with a different song database and some of its songs are missing, the app offers to load the right database first.
 - **Landscape printing** of a setlist or the whole song list: aligned columns, a set is never split across pages, two full 16-song sets fit on one A4 page, page numbers in the footer. Choose the printer in **File ▸ Printer**.
 - **Save as PDF** — *File ▸ Save Setlist as PDF…* makes the same landscape layout as a PDF, ready to email to the band or a venue.
-- **Export** a setlist as text or CSV, and **export the song database as CSV with the web links written out**.
+- **Save a setlist as a text file** (or CSV), and **export the song database as CSV with the web links written out**.
 - **Adjustable text size and colours** — *Font Size ▸ Songlist & Setlist Colours* has a colour wheel with a live preview for the song library and the active setlist, plus a readability (contrast) check. You can colour the songlist background, song titles, songs already in a set, the selected song, the **Song Library frame**, and the active setlist's frame and background. Remembered window size and position.
 - **Friendly first start** — finds a song spreadsheet or Google Drive link placed next to the app, or shows a *Welcome* window (open a spreadsheet, use a Drive link, create a template, or read the guide). Warns if the app is run from inside a zip file.
 - **Built-in help**: basics, keyboard shortcuts, spreadsheet and CSV set-up guides, and template generators.
@@ -143,9 +143,9 @@ The full list is in **Help ▸ Keyboard Shortcuts**.
 | macOS | `Build Mac App.command` | `JJs Setlist.app` |
 | Linux (optional) | `./build.sh` in `LINUX VERSION` | `JJs Setlist` (single program file) — most Linux users just use `./run.sh` |
 
-The Windows and Mac scripts install what they need (PyInstaller, openpyxl, Pillow) on first run, close the app if it's running, and rebuild the icon and About-window logo from `ARTWORK/JJ SETLIST Icon Source.png` and `ARTWORK/JJ SETLIST Logo Source.png` via `make_icons.py`. An app must be built on the system it's for — a Windows PC can't build the Mac or Linux app.
+The Windows and Mac scripts install what they need (PyInstaller, openpyxl, Pillow) on first run, close the app if it's running, and rebuild the icon, About-window logo and help-tip bulb from `ARTWORK/JJ SETLIST Icon Source.png`, `ARTWORK/JJ SETLIST Logo Source.png` and `ARTWORK/TIP LIght Bulb #1.png` via `make_icons.py`. An app must be built on the system it's for — a Windows PC can't build the Mac or Linux app.
 
-The version shown in the title bar and *Help ▸ About* gets a letter for the system it's running on — `1.2.W` (Windows), `1.2.M` (Mac), `1.2.L` (Linux) — so change only the number in `APP_VERSION` for a new release.
+The version shown in the title bar and *Help ▸ About* gets a letter for the system it's running on — `1.4.W` (Windows), `1.4.M` (Mac), `1.4.L` (Linux) — so change only the number in `APP_VERSION` for a new release.
 
 **Sending an update to a Mac user:** double-click `Make Mac Package.bat`. It refreshes the `APPLE MAC VERSION` folder and creates `JJs Setlist - Mac.zip` (with Mac line endings and executable permissions intact), including the song spreadsheet and saved setlists.
 

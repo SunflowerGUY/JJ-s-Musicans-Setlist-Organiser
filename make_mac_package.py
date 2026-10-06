@@ -23,6 +23,7 @@ FILES = [
     "LICENSE",
     "ARTWORK/JJ SETLIST Icon Source.png",
     "ARTWORK/JJ SETLIST Logo Source.png",
+    "ARTWORK/TIP LIght Bulb #1.png",        # make_icons.py bakes it into logo_data.py
 ]
 # Files that must be executable on the Mac (double-clickable).
 EXECUTABLE = {"Build Mac App.command", "Run JJs Setlist.command"}

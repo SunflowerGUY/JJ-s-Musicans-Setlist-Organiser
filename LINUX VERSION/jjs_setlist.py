@@ -26,13 +26,13 @@ from pathlib import Path
 from tkinter import filedialog, messagebox, simpledialog, ttk
 from urllib.parse import unquote
 
-from logo_data import LOGO_PNG
+from logo_data import LOGO_PNG, TIP_PNG
 
 IS_WIN = sys.platform == "win32"
 IS_MAC = sys.platform == "darwin"
 
-# Version with the system's letter: 1.2.W (Windows), 1.2.M (Mac), 1.2.L (Linux).
-APP_VERSION = "1.2." + ("W" if IS_WIN else "M" if IS_MAC else "L")
+# Version with the system's letter: 1.4.W (Windows), 1.4.M (Mac), 1.4.L (Linux).
+APP_VERSION = "1.4." + ("W" if IS_WIN else "M" if IS_MAC else "L")
 APP_NAME = "JJ's Musicians Setlist Organiser"  # shown in windows, help and printouts
 APP_FILE_NAME = "JJs Setlist"           # for files and folders (no apostrophe)
 APP_TITLE = f"{APP_NAME} - v{APP_VERSION}"
@@ -81,6 +81,7 @@ MIN_FONT_SIZE, MAX_FONT_SIZE = 9, 24
 
 NUM_SETS = 4
 MAX_SONGS = 16
+MINUTES_PER_SONG = 3.5                  # for each set's approximate running time
 
 # Spreadsheet header names recognised for each field (case-insensitive).
 COLUMN_ALIASES = {
@@ -819,6 +820,43 @@ def contrast_ratio(fg, bg):
     return (a + 0.05) / (b + 0.05)
 
 
+class HoverTip:
+    """A small yellow tooltip that appears while the mouse is over a widget."""
+
+    def __init__(self, widget, text, delay=400):
+        self.widget, self.text, self.delay = widget, text, delay
+        self._after = self._win = None
+        widget.bind("<Enter>", self._schedule, add="+")
+        widget.bind("<Leave>", self._hide, add="+")
+        widget.bind("<Button-1>", self._hide, add="+")
+
+    def _schedule(self, _event=None):
+        self._hide()
+        self._after = self.widget.after(self.delay, self._show)
+
+    def _show(self):
+        self._after = None
+        x = self.widget.winfo_rootx() + self.widget.winfo_width() // 2
+        y = self.widget.winfo_rooty() + self.widget.winfo_height() + 4
+        self._win = tw = tk.Toplevel(self.widget)
+        tw.wm_overrideredirect(True)
+        tk.Label(tw, text=self.text, bg="#ffffe0", fg="#000", relief="solid",
+                 borderwidth=1, padx=6, pady=2).pack()
+        tw.update_idletasks()
+        # Keep it on screen: it sits near the window's right edge.
+        x = min(x - tw.winfo_reqwidth() // 2,
+                tw.winfo_screenwidth() - tw.winfo_reqwidth() - 4)
+        tw.wm_geometry(f"+{max(0, x)}+{y}")
+
+    def _hide(self, _event=None):
+        if self._after:
+            self.widget.after_cancel(self._after)
+            self._after = None
+        if self._win:
+            self._win.destroy()
+            self._win = None
+
+
 class ColourPicker(ttk.Frame):
     """The colour wheel / brightness bar / fields from colour_picker.py.
     Calls on_change("#rrggbb") whenever the colour changes."""
@@ -1055,6 +1093,7 @@ class SetlistApp(tk.Tk):
         self.db_path = None
         self.db_name = None        # e.g. "JELLY JAZZ SETLIST - with links"
         self.db_desc = None        # where it came from, for Help > About
+        self.setlist_db = None     # database the setlist on screen was made with
         self._drag = None
 
         SETLIST_DIR.mkdir(parents=True, exist_ok=True)
@@ -1292,10 +1331,12 @@ class SetlistApp(tk.Tk):
         self.db_label.bind("<Button-1>",
                            lambda e: None if self.library else self._show_welcome())
 
-        ttk.Button(top, text="Export…", command=self._export).pack(side="right")
+        ttk.Button(top, text="Export as Text…", command=self._export).pack(side="right")
         ttk.Button(top, text="New", command=self._new_setlist).pack(side="right", padx=4)
         ttk.Button(top, text="Delete", command=self._delete_saved).pack(side="right")
-        ttk.Button(top, text="Load", command=self._load_selected).pack(side="right", padx=4)
+        # Picking from the dropdown loads the setlist, so this is just a pointer.
+        choose_label = ttk.Label(top, text="◀ Choose a Setlist", foreground="#444")
+        choose_label.pack(side="right", padx=(4, 8))
         self.saved_var = tk.StringVar()
         self.saved_combo = ttk.Combobox(top, textvariable=self.saved_var,
                                         state="readonly", width=32)
@@ -1316,6 +1357,25 @@ class SetlistApp(tk.Tk):
                   foreground="#666").pack(side="left", padx=8)
         self.total_label = ttk.Label(namebar, text="", foreground="#444")
         self.total_label.pack(side="right")
+
+        # Help-tip bulb, kept centred under the "Choose a Setlist" label above it.
+        try:
+            self._tip_image = tk.PhotoImage(data=TIP_PNG)
+            tip = ttk.Label(namebar, image=self._tip_image, cursor="hand2")
+        except tk.TclError:
+            tip = ttk.Label(namebar, text="💡", cursor="hand2")
+        tip.pack(side="right")
+        tip.bind("<Button-1>", lambda e: self._show_more_tips())
+        HoverTip(tip, "Click for More Tips")
+
+        def centre_tip(_event=None):
+            # The bulb is packed just left of the total, so pad from its left edge.
+            choose_centre = choose_label.winfo_rootx() + choose_label.winfo_width() / 2
+            right = (self.total_label.winfo_rootx() - choose_centre
+                     - tip.winfo_reqwidth() / 2)
+            tip.pack_configure(padx=(8, max(0, round(right))))
+        for w in (choose_label, top, self.total_label):
+            w.bind("<Configure>", centre_tip, add="+")
 
         # status bar
         self.status = ttk.Label(self, text="Tip: drag songs from the library into a set, "
@@ -1469,7 +1529,7 @@ class SetlistApp(tk.Tk):
                       command=self._choose_database)
         m.add_command(label="Reload Song Database", underline=0, accelerator=acc("F5"),
                       command=self._reload_database)
-        m.add_command(label="Song Database Settings…", underline=10,
+        m.add_command(label="Song Database Settings…", underline=9,
                       command=self._database_settings)
         m.add_separator()
         m.add_command(label="New Setlist", underline=0, accelerator=acc("Ctrl+N"),
@@ -1482,24 +1542,24 @@ class SetlistApp(tk.Tk):
                       command=self._save_as)
         self.delete_menu = tk.Menu(m, tearoff=0, postcommand=self._fill_delete_menu)
         m.add_cascade(label="Delete Saved Setlist", underline=0, menu=self.delete_menu)
+        m.add_command(label="Open Setlists Folder", underline=14,
+                      command=lambda: open_link(str(SETLIST_DIR)))
         m.add_separator()
-        m.add_command(label="Export Setlist…", underline=1, accelerator=acc("Ctrl+E"),
+        m.add_command(label="Save Setlist as Text file…", underline=16, accelerator=acc("Ctrl+E"),
                       command=self._export)
         m.add_command(label="Export Song Database as CSV (with web links)…",
-                      underline=12, command=self._export_database_csv)
-        m.add_command(label="Print Song List…", underline=6,
+                      underline=24, command=self._export_database_csv)
+        m.add_command(label="Print Song List…", underline=9,
                       command=self._print_songlist)
         m.add_command(label="Print This Setlist…", underline=0, accelerator=acc("Ctrl+Shift+P"),
                       command=self._print_setlist)
-        m.add_command(label="Save Setlist as PDF…", underline=14,
+        m.add_command(label="Save Setlist as PDF…", underline=3,
                       command=self._save_setlist_pdf)
-        m.add_command(label="Save Song List as PDF…", underline=17,
+        m.add_command(label="Save Song List as PDF…", underline=2,
                       command=self._save_songlist_pdf)
         self.printer_var = tk.StringVar()
         self.printer_menu = tk.Menu(m, tearoff=0, postcommand=self._fill_printer_menu)
         m.add_cascade(label="Printer", underline=2, menu=self.printer_menu)
-        m.add_command(label="Open Setlists Folder", underline=13,
-                      command=lambda: open_link(str(SETLIST_DIR)))
         m.add_separator()
         m.add_command(label="Exit", underline=1, accelerator=acc("Alt+F4"),
                       command=self._on_close)
@@ -1525,7 +1585,7 @@ class SetlistApp(tk.Tk):
                       command=lambda: self.search_var.set(""))
 
         m = tk.Menu(bar, tearoff=0)
-        bar.add_cascade(label="Sets", underline=0, menu=m)
+        bar.add_cascade(label="Set Focus", underline=0, menu=m)
         self.active_var = tk.IntVar(value=self.active_set)
         for n in range(NUM_SETS):
             m.add_radiobutton(label=f"Set {n + 1}", underline=4, variable=self.active_var,
@@ -1536,7 +1596,7 @@ class SetlistApp(tk.Tk):
                       command=lambda: self._focus_box(self.lib_box))
 
         m = tk.Menu(bar, tearoff=0)
-        bar.add_cascade(label="Songsheet", underline=2, menu=m)  # Alt+N (S is Sets)
+        bar.add_cascade(label="Songsheet", underline=2, menu=m)  # Alt+N (S is Set Focus)
         m.add_command(label="Open Songsheet for Selected Song", underline=0,
                       accelerator=acc("Ctrl+P"),
                       command=lambda: self._open_sheet(self._last_box))
@@ -1799,6 +1859,12 @@ class SetlistApp(tk.Tk):
             "after editing.\n"
             "• See Help ▸ Setting Up Your Song Spreadsheet for full details."))
 
+    def _show_more_tips(self):
+        messagebox.showinfo("More Tips",
+                            "• Double Click or Drag & Drop from the Master song list "
+                            "window into any Setlist window.\n\n"
+                            "• Move songs between Setlist windows with Drag & Drop.")
+
     # ---------- spreadsheet guide & template
 
     SPREADSHEET_GUIDE = [
@@ -2009,7 +2075,7 @@ class SetlistApp(tk.Tk):
         ("k", "Ctrl+N\tNew Setlist"),
         ("k", "Ctrl+S\tSave Setlist  (or Enter in the Setlist name box)"),
         ("k", "Ctrl+Shift+S\tSave Setlist As"),
-        ("k", "Ctrl+E\tExport Setlist"),
+        ("k", "Ctrl+E\tSave Setlist as Text file"),
         ("k", "Ctrl+Shift+P\tPrint This Setlist"),
         ("k", "Alt+F4\tExit"),
 
@@ -2724,8 +2790,11 @@ class SetlistApp(tk.Tk):
             box.selection_set(select)
             box.activate(select)
             box.see(select)
-        self.set_frames[n].config(
-            text=f"Set {n + 1}   —   {len(songs)}/{MAX_SONGS} songs")
+        title = f"Set {n + 1}   —   {len(songs)}/{MAX_SONGS} songs"
+        if songs:
+            minutes = int(len(songs) * MINUTES_PER_SONG + 0.5)    # round .5 up
+            title += f"   —   Approx {minutes} minutes"
+        self.set_frames[n].config(text=title)
 
     def _refresh_all_sets(self):
         for n in range(NUM_SETS):
@@ -3073,6 +3142,7 @@ class SetlistApp(tk.Tk):
             "name": name,
             "saved": dt.datetime.now().isoformat(timespec="seconds"),
             "database": str(self.db_path or ""),
+            "database_name": self.db_name or "",   # checked when loading
             "sets": [{"name": f"Set {i + 1}", "songs": s}
                      for i, s in enumerate(self.sets)],
         }
@@ -3083,6 +3153,7 @@ class SetlistApp(tk.Tk):
             messagebox.showerror("Could not save setlist", str(exc))
             return
         self.dirty = False
+        self.setlist_db = self.db_name
         self._refresh_saved_list()
         self.saved_var.set(fname)
         self._refresh_totals()
@@ -3118,7 +3189,7 @@ class SetlistApp(tk.Tk):
             return
         sets = [st.get("songs", []) for st in data.get("sets", [])]
         sets = (sets + [[] for _ in range(NUM_SETS)])[:NUM_SETS]
-        self.sets = [[s for s in st if s.get("title")][:MAX_SONGS] for st in sets]
+        sets = [[s for s in st if s.get("title")][:MAX_SONGS] for st in sets]
         # Refresh saved songs with the latest details (e.g. new songsheet
         # links) from the current database.
         # Match on title + artist; failing that, on the title alone when only
@@ -3135,7 +3206,25 @@ class SetlistApp(tk.Tk):
             same = titles.get(song["title"].casefold(), [])
             return dict(same[0]) if len(same) == 1 else song
 
-        self.sets = [[latest(s) for s in st] for st in self.sets]
+        def found(song):
+            return (song_id(song) in current
+                    or len(titles.get(song["title"].casefold(), [])) == 1)
+
+        not_found = [s["title"] for st in sets for s in st if not found(s)]
+        saved_db = self._setlist_db_name(data)
+        # Made with a different song database? Ask before loading - but only
+        # when some of its songs are missing, so a renamed spreadsheet with all
+        # the same songs loads without fuss.
+        if self.library and not_found and self._other_db(saved_db):
+            # Loading it with the wrong database is pointless, so the choice
+            # is: load the right database first, or don't load anything.
+            if (self._ask_load_recommended(saved_db, not_found)
+                    and self._load_recommended_db(data, saved_db)):
+                self.dirty = False         # already asked about unsaved changes
+                self._load_selected()      # again, now with the right database
+            return
+        self.sets = [[latest(s) for s in st] for st in sets]
+        self.setlist_db = saved_db
         self.name_var.set(data.get("name", fname))
         self.dirty = False
         self._refresh_all_sets()
@@ -3144,12 +3233,129 @@ class SetlistApp(tk.Tk):
         self._status(f"Loaded setlist “{self.name_var.get()}”.")
         self._warn_missing()
 
+    def _ask_load_recommended(self, saved_db, not_found):
+        """The setlist was made with another song database: Load Recommended
+        (that database, then the setlist) or Cancel. True for Load Recommended."""
+        win = tk.Toplevel(self)
+        win.title("Different song database")
+        win.resizable(False, False)
+        win.transient(self)
+        body = ttk.Frame(win, padding=20)
+        body.pack(fill="both", expand=True)
+        try:
+            ttk.Label(body, image="::tk::icons::warning").grid(
+                row=0, column=0, sticky="n", padx=(0, 16))
+        except tk.TclError:
+            ttk.Label(body, text="⚠", foreground=ORANGE,
+                      font=self.title_font).grid(row=0, column=0, sticky="n", padx=(0, 16))
+        ttk.Label(body, justify="left", wraplength=380, text=(
+            self._other_db_text(saved_db, not_found, "the one loaded now")
+            + f"Load Recommended opens “{saved_db}”, then loads this setlist.")
+        ).grid(row=0, column=1, sticky="w")
+
+        choice = []
+
+        def choose(value):
+            choice.append(value)
+            win.destroy()
+
+        buttons = ttk.Frame(body)
+        buttons.grid(row=1, column=0, columnspan=2, sticky="e", pady=(18, 0))
+        load = ttk.Button(buttons, text="Load Recommended", default="active",
+                          command=lambda: choose(True))
+        load.pack(side="left")
+        ttk.Button(buttons, text="Cancel",
+                   command=win.destroy).pack(side="left", padx=(8, 0))
+        win.bind("<Return>", lambda e: choose(True))
+        win.bind("<Escape>", lambda e: win.destroy())
+
+        # Centre over the main window and make it modal.
+        win.update_idletasks()
+        x = self.winfo_rootx() + (self.winfo_width() - win.winfo_width()) // 2
+        y = self.winfo_rooty() + (self.winfo_height() - win.winfo_height()) // 3
+        win.geometry(f"+{max(x, 0)}+{max(y, 0)}")
+        load.focus_set()
+        win.grab_set()
+        self.wait_window(win)
+        return bool(choice)
+
+    def _load_recommended_db(self, data, name):
+        """Open the song database a setlist was made with: the path saved in
+        the setlist, else a spreadsheet of that name in the app folder, else
+        ask where it is. True once it's loaded."""
+        saved = Path(data.get("database") or "")
+        if saved.parts and not saved.is_absolute():
+            saved = APP_DIR / saved
+        folders = [APP_DIR] + ([saved.parent] if saved.parts else [])
+        candidates = [saved] if saved.parts else []
+        candidates += [d / f"{name}{ext}" for d in folders
+                       for ext in (".xlsx", ".xlsm", ".csv")]
+        path = next((str(p) for p in candidates
+                     if p.stem.casefold() == name.casefold() and p.is_file()), None)
+        if not path:
+            path = filedialog.askopenfilename(
+                parent=self, title=f"Where is the song database “{name}”?",
+                initialdir=APP_DIR, initialfile=name,
+                filetypes=[("Spreadsheets", "*.csv *.xlsx *.xlsm"),
+                           ("All files", "*.*")])
+            if not path:
+                return False
+        # Clear the setlist on screen first, so switching databases doesn't
+        # warn about it - it's about to be replaced. Put it back on failure.
+        old = self.sets, self.setlist_db
+        self.sets, self.setlist_db = [[] for _ in range(NUM_SETS)], None
+        self._open_database(path)
+        if self.db_path != path:
+            self.sets, self.setlist_db = old
+            self._refresh_all_sets()
+            self._refresh_library()
+            return False
+        return True
+
+    @staticmethod
+    def _setlist_db_name(data):
+        """The song database a saved setlist was made with ("" if unknown)."""
+        saved = (data.get("database_name") or "").strip()
+        if not saved:      # older setlists only kept the file path
+            stem = Path(data.get("database") or "").stem
+            if stem != Path(DRIVE_CACHE).stem:   # the Drive copy says nothing
+                saved = stem
+        return saved
+
+    def _other_db(self, name):
+        """True if `name` is a song database other than the one loaded."""
+        return bool(name and self.db_name
+                    and name.casefold() != self.db_name.casefold())
+
+    def _other_db_text(self, saved_db, missing, loaded_desc):
+        """Start of the "made with a different song database" message."""
+        n = len(missing)
+        listed = "\n".join(f"   •  {t}" for t in missing[:8])
+        if n > 8:
+            listed += f"\n   …and {n - 8} more"
+        return (f"This setlist was made with the song database:\n\n   “{saved_db}”\n\n"
+                f"but {loaded_desc} is:\n\n   “{self.db_name}”\n\n"
+                f"{n} of its song{'s are' if n != 1 else ' is'} not in "
+                f"“{self.db_name}”:\n\n{listed}\n\n"
+                "Songs with the same title may also have picked up the wrong "
+                "details.\n\n")
+
     def _warn_missing(self):
-        """Say so if any set songs are no longer in the song database."""
+        """Say so if any set songs are no longer in the song database - or, if
+        the setlist was made with a different database, say that instead."""
         missing = self._missing_songs()
         if not missing:
             return
         n = len(missing)
+        if self._other_db(self.setlist_db):
+            self._status(f"{MISSING_MARK}{n} song{'s' if n != 1 else ''} not in this "
+                         f"song database - the setlist was made with “{self.setlist_db}”.")
+            messagebox.showwarning(
+                "Different song database",
+                self._other_db_text(self.setlist_db, missing, "the one just loaded")
+                + "They're marked ⚠ in orange. To go back, use File ▸ Open Song "
+                f"Database (or Song Database Settings) and load “{self.setlist_db}”.")
+            return
         listed = "\n".join(f"   •  {t}" for t in missing[:12])
         if n > 12:
             listed += f"\n   …and {n - 12} more"
@@ -3185,6 +3391,7 @@ class SetlistApp(tk.Tk):
         self.sets = [[] for _ in range(NUM_SETS)]
         self.name_var.set("")
         self.saved_var.set("")
+        self.setlist_db = None
         self.dirty = False
         self._refresh_all_sets()
         self._refresh_library()
@@ -3195,7 +3402,7 @@ class SetlistApp(tk.Tk):
         """Write a printable plain-text copy of the setlist."""
         name = self.name_var.get().strip() or "Setlist"
         path = filedialog.asksaveasfilename(
-            title="Export setlist", initialdir=APP_DIR,
+            title="Save Setlist as Text file", initialdir=APP_DIR,
             initialfile=f"{safe_filename(name)}.txt", defaultextension=".txt",
             filetypes=[("Text file", "*.txt"), ("CSV", "*.csv")])
         if not path:
@@ -3322,6 +3529,8 @@ class SetlistApp(tk.Tk):
                 try:
                     if IS_WIN:
                         subprocess.Popen(["notepad.exe", str(path)])
+                    elif IS_MAC:
+                        subprocess.Popen(["open", "-a", "TextEdit", str(path)])
                     else:
                         open_link(path)
                 except OSError as exc2:
