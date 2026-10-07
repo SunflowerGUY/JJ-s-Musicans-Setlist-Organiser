@@ -41,6 +41,7 @@ Get the latest version from the **[Releases page](https://github.com/SunflowerGU
 | Windows | [`JJs-Setlist-Windows.exe`](https://github.com/SunflowerGUY/JJ-s-Musicans-Setlist-Organiser/releases/latest/download/JJs-Setlist-Windows.exe) | Put it in a folder of its own and double-click it (see *Windows* below) |
 | macOS | [`JJs-Setlist-Mac.zip`](https://github.com/SunflowerGUY/JJ-s-Musicans-Setlist-Organiser/releases/latest/download/JJs-Setlist-Mac.zip) | Unzip and follow `READ ME FIRST - Mac.txt` |
 | Linux | [`JJs-Setlist-Linux.zip`](https://github.com/SunflowerGUY/JJ-s-Musicans-Setlist-Organiser/releases/latest/download/JJs-Setlist-Linux.zip) | Unzip and run `./run.sh` (see *Linux* below) |
+| Linux (one file) | [`JJs-Setlist-Linux.AppImage`](https://github.com/SunflowerGUY/JJ-s-Musicans-Setlist-Organiser/releases/latest/download/JJs-Setlist-Linux.AppImage) | Nothing to install: mark it executable and double-click it (see *Linux* below) |
 
 The same packages are also kept in the [`packages`](packages) folder.
 
@@ -79,6 +80,8 @@ Install Python's Tk toolkit if it isn't there already (e.g. `sudo apt install py
 ./run.sh        # start the app (the first run installs openpyxl into a private .venv)
 ./install.sh    # optional: add it to the applications menu
 ```
+
+**Or use the AppImage**: one file with everything built in, no Python or Tk needed. It runs on Ubuntu 22.04, Mint 21, Debian 12 and newer. Mark it executable (right-click ▸ Properties ▸ Permissions, or `chmod +x JJs-Setlist-Linux.AppImage`) and double-click it. To add it to the applications menu, run it once from a terminal with `--install`.
 
 As on a Mac, settings and saved setlists live in `~/Documents/JJs Setlist`, and setlists shipped with an update are imported automatically. Commands for other distributions, printing and troubleshooting are in [`LINUX VERSION/README.md`](LINUX%20VERSION/README.md).
 
