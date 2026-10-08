@@ -10,6 +10,12 @@
   <b>Windows</b>, <b>macOS</b> and <b>Linux</b> · Python 3 · Tkinter
 </p>
 
+<p align="center">
+  🌐 <b>Also in your web browser — nothing to install:</b>
+  <a href="https://sunflowerguy.github.io/jjs-setlist/">sunflowerguy.github.io/jjs-setlist</a>
+  (<a href="https://github.com/SunflowerGUY/jjs-setlist">browser edition on GitHub</a>)
+</p>
+
 ---
 
 ![JJ's Musicians Setlist Organiser main window](docs/screenshot.jpg)
@@ -44,6 +50,8 @@ Get the latest version from the **[Releases page](https://github.com/SunflowerGU
 | Linux (one file) | [`JJs-Setlist-Linux.AppImage`](https://github.com/SunflowerGUY/JJ-s-Musicans-Setlist-Organiser/releases/latest/download/JJs-Setlist-Linux.AppImage) | Nothing to install: mark it executable and double-click it (see *Linux* below) |
 
 The same packages are also kept in the [`packages`](packages) folder.
+
+**Rather not install anything?** The [browser edition](https://sunflowerguy.github.io/jjs-setlist/) runs in Chrome, Edge, Firefox or Safari and reads the same song spreadsheets; its saved setlists are the same `.json` files as this app's ([details](https://github.com/SunflowerGUY/jjs-setlist)).
 
 ---
 
