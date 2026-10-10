@@ -31,8 +31,8 @@ from logo_data import LOGO_PNG, TIP_PNG
 IS_WIN = sys.platform == "win32"
 IS_MAC = sys.platform == "darwin"
 
-# Version with the system's letter: 1.5.W (Windows), 1.5.M (Mac), 1.5.L (Linux).
-APP_VERSION = "1.5." + ("W" if IS_WIN else "M" if IS_MAC else "L")
+# Version with the system's letter: 1.6.W (Windows), 1.6.M (Mac), 1.6.L (Linux).
+APP_VERSION = "1.6." + ("W" if IS_WIN else "M" if IS_MAC else "L")
 APP_NAME = "JJ's Musicians Setlist Organiser"  # shown in windows, help and printouts
 APP_FILE_NAME = "JJs Setlist"           # for files and folders (no apostrophe)
 APP_TITLE = f"{APP_NAME} - v{APP_VERSION}"
@@ -2840,14 +2840,16 @@ class SetlistApp(tk.Tk):
             self._status(f"Set {n + 1} is full ({MAX_SONGS} songs).")
             self.bell()
             return False
-        where = [f"Set {i + 1}" for i, st in enumerate(self.sets)
-                 if song_id(song) in {song_id(s) for s in st}]
+        # A song is only performed once a night: refuse a second copy.
+        where = next((i for i, st in enumerate(self.sets)
+                      if song_id(song) in {song_id(s) for s in st}), None)
+        if where is not None:
+            self._status(f"“{song['title']}” is already in Set {where + 1}.")
+            self.bell()
+            return False
         self.sets[n].insert(index, dict(song))
         self._changed(n, select=index)
-        msg = f"Added “{song['title']}” to Set {n + 1}."
-        if where:
-            msg += f"  (Note: also in {', '.join(where)})"
-        self._status(msg)
+        self._status(f"Added “{song['title']}” to Set {n + 1}.")
         return True
 
     def _add_selected(self):
